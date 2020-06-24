@@ -3,16 +3,16 @@ const dgram = require('dgram');
 const packetGenerator = require('./packet_generator');
 // const packetUtils = require('./packet_utils');
 const client = dgram.createSocket('udp4');
-const host = '192.168.0.42';
+const host = '192.168.0.44';
 const udpPort = 1514;
 
 // 파일 입출력
 const fs = require('fs');
 
 // 만들어서 보낼 메세지 개수
-const numMessage = 500000;
+let numMessage = 500000;
 // udp 메세지를 보낼때 딜레이 값. 값만큼 빈 루프를 돈다.
-const sendMessageDelay = 200000;
+const sendMessageDelay = 300000;
 // 보낸 메세지 카운트
 let sendCount = 0;
 
@@ -31,19 +31,12 @@ var strByteLength = function(s,b,i,c){
 
 const createMessageToFile = (number, filename) => new Promise((resolve) => {
   const messageWriter = fs.createWriteStream(filename);
-
   messageWriter.on('finish', () => {
     resolve();
   });
-  
   for (let i = 0; i < number; i++) {
-    const packet = packetGenerator.createPacket();
-
-    //console.log(arrayByteLength(packet) + " Bytes");
-
-    messageWriter.write(packet + '\n');
+    messageWriter.write(packetGenerator.createPacket() + '\n')
   }
-
  messageWriter.end();
 });
 
@@ -69,32 +62,27 @@ const sendMessage = (line) => new Promise((resolve) => {
  * 아래 반복문을 통한 딜레이 코드는 훨씬 빠르게 전송할 수 있음.
  * 1000개 송신하는데 유실률 0였지만 싱글쓰레드를 잡고 있는게 조금 문제?
  */
-const sendMessageToUdp = (filename) => new Promise((resolve) => {
-  // 파일을 읽어서 line 별로 udp 송신
-  fs.readFile(filename, 'utf8', async (err, data) => {
-    if (err) throw err;
 
-    // '\n' 구분자로 split을 하면 마지막에 빈 문자열이 나오므로 제거
-    const lines = data.split('\n').slice(0, -1);
+const sendMessageToUdp = async (filename) => {
+//파일 한번에 다 읽음
+  const data = fs.readFileSync('result_send_udp.txt', 'utf-8').trimRight().split('\n')
 
-    for (let i = 0; i < lines.length; i++) {
-      await sendMessage(lines[i]);
-
-      // delay 코드. 200000을 딜레이로 주면 5000개 송신에 1.4초 정도 걸림.
-      // 1000개 송신은 0.3초 정도 걸림.
-      // 다만 setTimout 코드와 다르게 kafka_consumer와 같이 실행하면
-      // 1.5배 정도 느려짐.
-      for (let j = 0; j < sendMessageDelay; j++) { } 
-    }
-
-    resolve();
-  });
+  for (let i = 0;i < numMessage; i++){
+    await sendMessage(`logtime="${Date.now()}",${data[i % data.length]}`);
+    for (let j = 0; j < sendMessageDelay; j++) { }
+  }
+};
+process.argv.forEach(function (val, index, array) {
+  if (index ==2){
+    numMessage = (val > 0 ) ? val: 500000;
+    console.log(index + ': ' + val);
+  }
 });
 
 const run = async () => {
   const startDate = Date.now();
 
-  // 5000개의 메세지를 만들어 파일로 저장.
+  //???개의 메세지를 만들어 파일로 저장.
   await createMessageToFile(numMessage, 'result_send_udp.txt');
 
   // 저장한 파일을 읽어 udp로 송신

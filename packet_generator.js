@@ -16,62 +16,53 @@ const http_host = ['fast.com','www.4.cn','d3js.org','nas2dual','avian.pk','mgr.a
 // type값은 정수로 받고 4가지 타입이 존재.
 const addHash=(packet, max) => {
   var rand2=Math.floor(Math.random() * max);
-  data='hash="' + hash[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data='hash="' + hash[rand2] + '"';
+  return packet + "," + data;
 };
 
 const addProtocolTypes=(packet, max) => {
   var rand2=Math.floor(Math.random() * max);
-  data='protocol="' + protocolTypes[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data='protocol="' + protocolTypes[rand2] + '"';
+  return packet + "," + data;
 };
 
 const addSrc_ip=(packet, max) => {
   var rand2=Math.floor(Math.random() * max);
-  data='src_ip="' + src_ip[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data='src_ip="' + src_ip[rand2] + '"';
+  return data;
 };
 
 const addDst_ip=(packet, max) => {
   var rand2=Math.floor(Math.random() * max);
-  data='dst_ip="' + dst_ip[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data='dst_ip="' + dst_ip[rand2] + '"';
+  return packet + "," + data;
 };
 
 const addSrc_port=(packet, max) => {
   var rand2=Math.floor(Math.random() * max);
-  data='src_port="' + src_port[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data='src_port="' + src_port[rand2] + '"';
+  return packet + "," + data;
 };
 
 const addDst_port=(packet, max) => {
   var rand2=Math.floor(Math.random() * max);
-  data='dst_port="' + dst_port[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data='dst_port="' + dst_port[rand2] + '"';
+  return packet + "," + data;
 };
 
 const addRule=(packet, max) => {
-  data='app="HTTP"';
-  packet.push(data)
+  const data1='app="HTTP"';
   var rand2=Math.floor(Math.random() * max);
-  data='rule="' + rule[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data2='rule="' + rule[rand2] + '"';
+  return packet + "," + data1 + "," + data2;
+
 };
 
 const addHttp_method=(packet, max) => {
   var rand2=Math.floor(Math.random() * max);
-  data='http_method="' + http_method[rand2] + '"';
-  packet.push(data)
-  data='http_host="' + http_host[rand2] + '"';
-  packet.push(data)
-  return packet;
+  const data1 = 'http_method="' + http_method[rand2] + '"';
+  const data2 = 'http_host="' + http_host[rand2] + '"';
+  return packet + "," + data1 + "," + data2;
 };
 
 function getTimeStamp() {
@@ -105,12 +96,10 @@ const addLogtime=(packet) => {
   return packet;
 };
 
-
 // 하나의 패킷 데이터를 생성하여 반환함.
 exports.createPacket=() => {
 
-  let packet=addLogtime([]);
-  packet=addSrc_ip(packet, MAX_NUM);
+  let packet=addSrc_ip([], MAX_NUM);
   packet=addDst_ip(packet, MAX_NUM);
   packet=addSrc_port(packet, MAX_NUM);
   packet=addDst_port(packet, MAX_NUM);

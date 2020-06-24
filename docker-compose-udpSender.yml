@@ -1,0 +1,17 @@
+version: '3'
+services:
+  udpSender:
+    image: node:14.3
+    command: bash -c 'tail -f /dev/null'
+    volumes:
+      - /Hot/udp:/udp
+    networks:
+      - app
+    deploy:
+      restart_policy:
+        condition: any
+      placement:
+        constraints: [node.role == manager]
+
+networks:
+  app:
